@@ -14,6 +14,7 @@ input,textarea,select{user-select:text;-webkit-user-select:text}
 .card{border:1px solid var(--b)}.bal{text-align:center}.hd{justify-content:center}.sum{align-items:center;text-align:center}
 .btn:active,.chip:active,nav button:active,.dots:active,.opt:active{opacity:.65}
 body.kb nav,body.kb .fab{display:none!important}
+body.kb .layer>div.fx .fxb{padding-bottom:45vh}
 /* Botones y menú forman un solo bloque fijo abajo, sin huecos */
 #dock{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;z-index:5;background:var(--bg)}
 #dock .fab,#dock nav{position:static;transform:none;width:auto;max-width:none;bottom:auto;left:auto}
@@ -257,8 +258,8 @@ function vSetOld(){return `<header class="hd"><div><h1>Ajustes</h1><p>Configurac
 function vInv(){const l=[...S.inv].sort((a,b)=>a.name.localeCompare(b.name)),u=l.reduce((a,i)=>a+i.stock,0),v=l.reduce((a,i)=>a+i.price*i.stock,0);
   return `<header class="hd"><div><h1>Inventario</h1><p>${l.length} productos</p></div></header><div class="two" style="margin-bottom:12px"><div class="card sum in"><span>${ic('box')}Productos total</span><b>${u}</b></div><div class="card sum"><span>Costo total</span><b>${fmt(v)}</b></div></div><div class="card">${l.length?l.map(i=>`<div class="row"><div class="tx"><b>${esc(i.name)}</b><small>Stock: <span style="color:${i.stock<=0?'var(--r)':'inherit'}">${i.stock}</span></small></div><span class="amt">${fmt(i.price)}</span><button class="dots" data-a="itemmenu" data-id="${i.id}" aria-label="Opciones de ${esc(i.name)}">${ic('dots')}</button></div>`).join(''):`<div class="empty">${ic('box')}<b>Sin productos</b>Agregá tu primer producto con su precio y stock.</div>`}</div>`}
 function openItem(id){const i=(id&&S.inv.find(x=>x.id===id))||{};const L=$('#layer');L.hidden=false;document.body.style.overflow='hidden';
-  L.innerHTML=`<div class="ctr"><div class="fh"><button class="ib" type="button" data-a="back" aria-label="Volver">${ic('back')}</button></div><form id="if" class="fcard" novalidate data-id="${id||''}"><div class="ficon">${ic('box')}</div><h2>${id?'Editar producto':'Nuevo producto'}</h2><p class="sub">Cargá el nombre, el precio y las unidades que tenés.</p>
-  <label for="in">Nombre del producto</label><input id="in" name="name" maxlength="60" placeholder="Ej: Una remerita de boca" value="${esc(i.name||'')}"><small class="err" id="e1"></small>
+  L.innerHTML=`<div class="ctr"><div class="fh"><button class="ib" type="button" data-a="back" aria-label="Volver">${ic('back')}</button></div><form id="if" class="fcard" autocomplete="off" novalidate data-id="${id||''}"><div class="ficon">${ic('box')}</div><h2>${id?'Editar producto':'Nuevo producto'}</h2><p class="sub">Cargá el nombre, el precio y las unidades que tenés.</p>
+  <label for="in">Nombre del producto</label><input id="in" name="name" autocomplete="off" maxlength="60" placeholder="Ej: Una remerita de boca" value="${esc(i.name||'')}"><small class="err" id="e1"></small>
   <label for="fa">Precio</label><div class="pf"><span>$</span><input id="fa" name="price" class="amtin" inputmode="numeric" placeholder="0" autocomplete="off" value="${i.price?(i.price/100).toLocaleString('en-US',{maximumFractionDigits:2}):''}"></div><small class="err" id="ea"></small>
   <label for="is">Stock (unidades)</label><div class="step"><button type="button" data-a="stk" data-t="is" data-v="-1" aria-label="Restar">−</button><input id="is" name="stock" inputmode="numeric" value="${i.stock??''}"><button type="button" data-a="stk" data-t="is" data-v="1" aria-label="Sumar">+</button></div><small class="err" id="e2"></small>
   <div class="acts"><button type="button" class="btn ghost" data-a="back">Cancelar</button><button class="btn">${id?'Guardar cambios':'Guardar producto'}</button></div></form></div>`;try{history.pushState({f:1},'')}catch(e){}}
@@ -299,25 +300,28 @@ function render(){chrome();$('#main').innerHTML=(mem?'<div class="card" style="b
 function openForm(type,id){const m=id?S.movs.find(x=>x.id===id):null,o=type==='out',v=m||{};
   const opts=(a,c)=>`<option value="">— Elegir —</option>`+a.map(x=>`<option${x===c?' selected':''}>${x}</option>`).join('');
   const L=$('#layer');L.hidden=false;document.body.style.overflow='hidden';
-  L.innerHTML=`<div class="fx"><form id="mf" novalidate data-type="${type}" data-id="${m?m.id:''}"><div class="fxh${o?' out':''}"><div class="fxt"><button class="ib" type="button" data-a="back" aria-label="Volver">${ic('back')}</button><b>${m?(o?'Editar gasto':'Editar venta'):(o?'Nuevo gasto':'Nueva venta')}</b></div><label for="fa">Importe</label><div class="pf2"><span>$</span><input id="fa" name="amount" inputmode="numeric" placeholder="0" autocomplete="off" value="${m?(m.amount/100).toLocaleString('en-US',{maximumFractionDigits:2}):''}"></div><small class="err" id="ea"></small></div><div class="fxb">
+  L.innerHTML=`<div class="fx"><form id="mf" autocomplete="off" novalidate data-type="${type}" data-id="${m?m.id:''}"><div class="fxh${o?' out':''}"><div class="fxt"><button class="ib" type="button" data-a="back" aria-label="Volver">${ic('back')}</button><b>${m?(o?'Editar gasto':'Editar venta'):(o?'Nuevo gasto':'Nueva venta')}</b></div><label for="fa">Importe</label><div class="pf2"><span>$</span><input id="fa" name="amount" inputmode="numeric" placeholder="0" autocomplete="off" value="${m?(m.amount/100).toLocaleString('en-US',{maximumFractionDigits:2}):''}"></div><small class="err" id="ea"></small></div><div class="fxb">
   <label for="ff">Fecha</label><input id="ff" name="date" type="date" value="${v.date||today()}"><small class="err" id="ef"></small>
   
-  ${o?`<label for="fd">Producto</label><input id="fd" name="desc" maxlength="80" value="${esc(v.desc||'')}"><small class="err" id="e1"></small>
-  <label for="fp">Proveedor (opcional)</label><input id="fp" name="party" list="sup" maxlength="60" value="${esc(v.party||'')}"><datalist id="sup">${S.suppliers.map(s=>`<option value="${esc(s)}">`).join('')}</datalist>
+  ${o?`<label for="fd">Producto</label><input id="fd" name="desc" autocomplete="off" maxlength="80" value="${esc(v.desc||'')}"><small class="err" id="e1"></small>
+  <label for="fp">Proveedor (opcional)</label><input id="fp" name="party" autocomplete="off" maxlength="60" value="${esc(v.party||'')}"><datalist id="sup">${S.suppliers.map(s=>`<option value="${esc(s)}">`).join('')}</datalist>
   <label for="fn">Nota (opcional)</label><textarea id="fn" name="notes" rows="2" maxlength="200">${esc(v.notes||'')}</textarea>`
-  :`<label for="fc">Cliente</label><input id="fc" name="client" maxlength="60" value="${esc(v.client||'')}"><small class="err" id="e1"></small>
-  ${S.settings.inv?`<label>Productos del inventario</label><div id="il"></div><button type="button" class="chip" data-a="pick">+ Elegir productos</button><small class="err" id="e4"></small>`:''}
-  <label for="fd">Producto</label><input id="fd" name="desc" maxlength="80" value="${esc(v.desc||'')}"><small class="err" id="e3"></small>
+  :`<label for="fc">Cliente</label><input id="fc" name="client" autocomplete="off" maxlength="60" value="${esc(v.client||'')}"><small class="err" id="e1"></small>
+  ${S.settings.inv?`<label>Productos del inventario</label><div id="il"></div><button type="button" class="chip" id="al" data-a="addline">+ Agregar producto</button><small class="err" id="e4"></small>`:''}
+  <label for="fd">Producto</label><input id="fd" name="desc" autocomplete="off" maxlength="80" value="${esc(v.desc||'')}"><small class="err" id="e3"></small><div id="xp"></div><button type="button" class="chip" id="ap" data-a="addp">${S.settings.inv?'+ Agregar producto nuevo':'+ Agregar otro producto'}</button>
   <label for="fl">Lugar de entrega</label><input id="fl" name="place" maxlength="60" autocomplete="off" value="${esc(v.place||'')}">
   <small class="err" id="e2"></small>
   <label for="fn">Nota (opcional)</label><textarea id="fn" name="notes" rows="2" maxlength="200">${esc(v.notes||'')}</textarea>`}
   <div class="acts"><button type="button" class="btn ghost" data-a="back">Cancelar</button><button class="btn${o?' red':''}">${m?'Guardar cambios':(o?'Guardar gasto':'Guardar venta')}</button></div></div></form></div>`;
   if(S.settings.inv&&!o)(v.items||(v.itemId?[{id:v.itemId,qty:v.qty}]:[])).forEach(x=>addLine(x.id,x.qty));
+  if(S.settings.inv&&!o&&v.items&&v.items.length&&v.xt)v.xt.forEach(x=>addX(x));
   try{history.pushState({f:1},'')}catch(e){}setTimeout(()=>$('#fa')&&$('#fa').focus(),50)}
 /* Venta con varios productos del inventario: cada línea tiene producto + cantidad; el importe y el nombre se completan solos */
 function addLine(id,q){const d=document.createElement('div');d.className='il';
   d.innerHTML=`<select name="itemId" aria-label="Producto"><option value="">— Elegir producto —</option>${S.inv.map(i=>`<option value="${i.id}"${id===i.id?' selected':''}>${esc(i.name)} · ${fmt(i.price)} · stock ${i.stock}</option>`).join('')}</select><div class="step"><button type="button" data-a="lq" data-v="-1" aria-label="Restar">−</button><input name="qty" inputmode="numeric" value="${q||1}" aria-label="Cantidad"><button type="button" data-a="lq" data-v="1" aria-label="Sumar">+</button></div><button type="button" class="dots" data-a="lrm" aria-label="Quitar producto">${ic('trash')}</button>`;
-  $('#il').appendChild(d);sumLines()}
+  $('#il').appendChild(d);sumLines();lblAdd()}
+function addX(t){const d=document.createElement('div');d.className='il';d.innerHTML='<input name="xdesc" autocomplete="off" maxlength="80" placeholder="Otro producto" aria-label="Otro producto" style="flex:1 1 0;min-width:0" value="'+esc(t||'')+'"><button type="button" class="dots" data-a="lrm" aria-label="Quitar producto">'+ic('trash')+'</button>';$('#xp').appendChild(d);if(t===undefined)d.querySelector('input').focus()}
+function lblAdd(){const b=$('#al');if(b)b.textContent=document.querySelector('#il .il')?'+ Agregar otro producto':'+ Agregar producto'}
 function sumLines(){let t=0;const n=[];document.querySelectorAll('#il .il').forEach(r=>{const p=S.inv.find(x=>x.id===r.querySelector('select').value);if(!p)return;const q=Math.max(1,Math.floor(Number(r.querySelector('.step input').value))||1);t+=p.price*q;n.push(p.name+(q>1?' x'+q:''))});
   if(!n.length)return;$('#fa').value=(t/100).toLocaleString('en-US',{maximumFractionDigits:2});$('#fd').value=n.join(', ')}
 let skipPop=false;
@@ -327,7 +331,7 @@ function submitForm(f){if(busy)return;const fd=new FormData(f),d=Object.fromEntr
   const a=parseMoney(d.amount);let bad=false;$('#ea').textContent='';$('#ef').textContent='';
   if(!(a>0)){$('#ea').textContent='Ingresá un importe mayor que cero.';bad=true}
   if(!/^\d{4}-\d{2}-\d{2}$/.test(d.date||'')){$('#ef').textContent='Elegí una fecha válida.';bad=true}
-  const nm=d.desc.trim(),cl=o?'':d.client.trim();$('#e1').textContent='';if(o){if(!nm){$('#e1').textContent='Escribí el producto.';bad=true}}else{$('#e3').textContent='';if(!cl){$('#e1').textContent='Escribí el cliente.';bad=true}if(!nm){$('#e3').textContent='Escribí el producto.';bad=true}}
+  const nm=[d.desc.trim()].concat(fd.getAll('xdesc').map(x=>x.trim())).filter(Boolean).join(', '),cl=o?'':d.client.trim();$('#e1').textContent='';if(o){if(!nm){$('#e1').textContent='Escribí el producto.';bad=true}}else{$('#e3').textContent='';if(!cl){$('#e1').textContent='Escribí el cliente.';bad=true}if(!nm){$('#e3').textContent='Escribí el producto.';bad=true}}
   if(!o){$('#e2').textContent='';if(!d.place.trim()){$('#e2').textContent='Escribí el lugar de entrega.';bad=true}}
   if(bad)return;
   const mg={};if(!o)fd.getAll('itemId').forEach((x,k)=>{if(x&&S.inv.find(y=>y.id===x))mg[x]=(mg[x]||0)+(Math.floor(Number(fd.getAll('qty')[k]))||1)});
@@ -335,7 +339,7 @@ function submitForm(f){if(busy)return;const fd=new FormData(f),d=Object.fromEntr
   const its=Object.keys(mg).map(k=>{const p=S.inv.find(y=>y.id===k);return{id:k,name:p.name,price:p.price,qty:mg[k]}});
   for(const x of its){const p=S.inv.find(y=>y.id===x.id),have=p.stock+oq.filter(z=>z.id===x.id).reduce((a,z)=>a+(z.qty||0),0);if(x.qty>have){$('#e4').textContent='Stock insuficiente de '+p.name+' (hay '+have+').';return}}
   busy=true;const t=nm;
-  const rec=o?{amount:a,desc:t,date:d.date,party:d.party.trim(),notes:d.notes.trim()}:{amount:a,desc:t,client:cl,date:d.date,place:d.place.trim(),notes:d.notes.trim(),items:its};
+  const rec=o?{amount:a,desc:t,date:d.date,party:d.party.trim(),notes:d.notes.trim()}:{amount:a,desc:t,client:cl,date:d.date,place:d.place.trim(),notes:d.notes.trim(),items:its,xt:its.length?fd.getAll('xdesc').map(x=>x.trim()).filter(Boolean):[]};
   const before=JSON.stringify(S);
   if(id){const m=S.movs.find(x=>x.id===id);if(!m){busy=false;return toast('No se encontró el movimiento',1)}stk(m,1);Object.assign(m,rec);stk(m,-1)}
   else{const n=new Date();S.movs.push(Object.assign({id:uid(),type:f.dataset.type,time:pad(n.getHours())+':'+pad(n.getMinutes()),created:Date.now()},rec));stk(S.movs[S.movs.length-1],-1)}
@@ -364,8 +368,8 @@ document.addEventListener('click',e=>{if(e.target.id==='layer'){closeForm();retu
   else if(a==='hper'){U.hp=v;render()}else if(a==='mper'){U.mp=v;U.md='';render()}else if(a==='mdclear'){U.md='';render()}else if(a==='day'){pushT();U.md=v;U.tab='mov';render();scrollTo(0,0)}else if(a==='sper'){U.sp=v;U.sd='';render()}else if(a==='sdclear'){U.sd='';render()}
   else if(a==='new')openForm(v);
   else if(a==='tog'){S.settings[v]=!S.settings[v];if(v==='inv'&&!S.settings.inv&&U.tab==='inv')U.tab='set';save();render()}
-  else if(a==='itemnew')openItem();else if(a==='count')openCount();else if(a==='addline')addLine();else if(a==='pick'){if(!S.inv.length){toast('Primero creá productos en Inventario',1)}else sheet(`<h3>Elegí los productos</h3><div style="max-height:50vh;overflow:auto">${[...S.inv].sort((x,y)=>x.name.localeCompare(y.name)).map(i=>`<label class="pk"><input type="checkbox" value="${i.id}"${i.stock<=0?' disabled':''}><span><b>${esc(i.name)}</b><small>${fmt(i.price)} · stock ${i.stock}</small></span></label>`).join('')}</div><div class="acts"><button class="btn ghost" data-a="close">Cancelar</button><button class="btn" data-a="pickok">Agregar</button></div>`)}
-  else if(a==='pickok'){const have=[...document.querySelectorAll('#il select')].map(s=>s.value);document.querySelectorAll('#shade .pk input:checked').forEach(c=>{if(!have.includes(c.value))addLine(c.value)});closeSheet()}else if(a==='lq'){const inp=b.parentElement.querySelector('input');inp.value=Math.max(1,(Math.floor(Number(inp.value))||1)+Number(v));sumLines()}else if(a==='lrm'){b.closest('.il').remove();sumLines()}else if(a==='stk'){const el=document.getElementById(b.dataset.t);if(el)el.value=Math.max(0,(Math.floor(Number(el.value))||0)+Number(v))}else if(a==='itemmenu')itemMenu(id);else if(a==='itemedit'){closeSheet();openItem(id)}else if(a==='itemdel')itemDel(id);
+  else if(a==='itemnew')openItem();else if(a==='count')openCount();else if(a==='addline')addLine();else if(a==='addp')addX();else if(a==='pick'){if(!S.inv.length){toast('Primero creá productos en Inventario',1)}else sheet(`<h3>Elegí los productos</h3><div style="max-height:50vh;overflow:auto">${[...S.inv].sort((x,y)=>x.name.localeCompare(y.name)).map(i=>`<label class="pk"><input type="checkbox" value="${i.id}"${i.stock<=0?' disabled':''}><span><b>${esc(i.name)}</b><small>${fmt(i.price)} · stock ${i.stock}</small></span></label>`).join('')}</div><div class="acts"><button class="btn ghost" data-a="close">Cancelar</button><button class="btn" data-a="pickok">Agregar</button></div>`)}
+  else if(a==='pickok'){const have=[...document.querySelectorAll('#il select')].map(s=>s.value);document.querySelectorAll('#shade .pk input:checked').forEach(c=>{if(!have.includes(c.value))addLine(c.value)});closeSheet()}else if(a==='lq'){const inp=b.parentElement.querySelector('input');inp.value=Math.max(1,(Math.floor(Number(inp.value))||1)+Number(v));sumLines()}else if(a==='lrm'){b.closest('.il').remove();sumLines();lblAdd()}else if(a==='stk'){const el=document.getElementById(b.dataset.t);if(el)el.value=Math.max(0,(Math.floor(Number(el.value))||0)+Number(v))}else if(a==='itemmenu')itemMenu(id);else if(a==='itemedit'){closeSheet();openItem(id)}else if(a==='itemdel')itemDel(id);
   else if(a==='itemdelok'){S.inv=S.inv.filter(x=>x.id!==id);save();closeSheet();render();toast('Producto eliminado')}
   else if(a==='back')closeForm();
   else if(a==='menu')menu(id);
@@ -392,7 +396,11 @@ document.addEventListener('submit',e=>{e.preventDefault();const f=e.target;
 document.addEventListener('gesturestart',e=>e.preventDefault());
 /* Con el teclado abierto se oculta el menú de abajo y el campo queda centrado, con su botón Guardar a la vista */
 const typing=()=>{const a=document.activeElement||{};return /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.type!=='date'};
-function kb(){document.body.classList.toggle('kb',typing());if(typing())setTimeout(()=>{try{const a=document.activeElement,f=a.closest('form')||a,h=window.visualViewport?visualViewport.height:innerHeight;(f.offsetHeight<h-130?f:a).scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}},300)}
+/* El botón de agregar producto no le quita el foco al campo, así el teclado no se cierra */
+document.addEventListener('mousedown',e=>{if(e.target.closest('[data-a="addp"]'))e.preventDefault()});
+function kbFix(){try{const a=document.activeElement,sc=a&&a.closest('.fx');if(!sc)return;const v=window.visualViewport,vb=v?v.offsetTop+v.height:innerHeight,t=a.closest('#xp')||a.id==='fd'?$('#ap'):a.closest('#il')?$('#al'):a,o=(t||a).getBoundingClientRect().bottom-(vb-24);if(o>0)sc.scrollTop+=o}catch(e){}}
+if(window.visualViewport)visualViewport.addEventListener('resize',()=>{if(typing())kbFix()});
+function kb(){document.body.classList.toggle('kb',typing());if(typing())setTimeout(()=>{try{if(document.activeElement.closest('.fx')){kbFix();setTimeout(kbFix,350);return}const a=document.activeElement,f=a.closest('form')||a,h=window.visualViewport?visualViewport.height:innerHeight;(f.offsetHeight<h-130?f:a).scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}},300)}
 document.addEventListener('focusin',kb);document.addEventListener('focusout',()=>setTimeout(()=>document.body.classList.toggle('kb',typing()),150));
 /* Botón/gesto "atrás" del teléfono = Cancelar dentro de un formulario */
 window.addEventListener('popstate',()=>{if(skipPop){skipPop=false;return}if(!$('#layer').hidden)closeForm(1);else if(U.tab!=='home'){U.tab='home';U.md='';render();scrollTo(0,0)}});
