@@ -171,14 +171,14 @@ function openForm(type,id){const m=id?S.movs.find(x=>x.id===id):null,o=type==='o
   <label for="ff">Fecha</label><input id="ff" name="date" type="date" value="${v.date||today()}"><small class="err" id="ef"></small>
   
   ${o?`<label for="fd">Producto</label><input id="fd" name="desc" autocomplete="off" maxlength="80" value="${esc(v.desc||'')}"><small class="err" id="e1"></small>
-  <label for="fp">Proveedor (opcional)</label><input id="fp" name="party" autocomplete="off" maxlength="60" value="${esc(v.party||'')}">
-  <label for="fn">Nota (opcional)</label><textarea id="fn" name="notes" rows="2" maxlength="200">${esc(v.notes||'')}</textarea>`
+  <label for="fp">Proveedor</label><input id="fp" name="party" autocomplete="off" maxlength="60" value="${esc(v.party||'')}">
+  <label for="fn">Nota</label><textarea id="fn" name="notes" rows="2" maxlength="200">${esc(v.notes||'')}</textarea>`
   :`<label for="fc">Cliente</label><input id="fc" name="client" autocomplete="off" maxlength="60" value="${esc(v.client||'')}"><small class="err" id="e1"></small>
   <label for="fd">Productos</label>${S.settings.inv?'<div id="il"></div>':''}<input id="fd" name="desc" autocomplete="off" maxlength="80" placeholder="${S.settings.inv?'Se completa al elegir del inventario':'Nombre del producto'}" value="${esc(v.desc||'')}"><small class="err" id="e3"></small><div id="xp"></div><small class="err" id="e4"></small>
   <div class="cr">${S.settings.inv?'<button type="button" class="chip" id="al" data-a="addline">+ Del inventario</button>':''}<button type="button" class="chip" id="ap" data-a="addp">+ Otro producto</button></div>
   <label for="fl">Lugar de entrega</label><input id="fl" name="place" maxlength="60" autocomplete="off" value="${esc(v.place||'')}">
   <small class="err" id="e2"></small>
-  <label for="fn">Nota (opcional)</label><textarea id="fn" name="notes" rows="2" maxlength="200">${esc(v.notes||'')}</textarea>`}
+  <label for="fn">Nota</label><textarea id="fn" name="notes" rows="2" maxlength="200">${esc(v.notes||'')}</textarea>`}
   <div class="acts"><button type="button" class="btn ghost" data-a="back">Cancelar</button><button class="btn${o?' red':''}">${m?'Guardar cambios':(o?'Guardar gasto':'Guardar venta')}</button></div></div></form></div>`;
   if(S.settings.inv&&!o)(v.items||(v.itemId?[{id:v.itemId,qty:v.qty}]:[])).forEach(x=>addLine(x.id,x.qty));
   if(S.settings.inv&&!o&&v.items&&v.items.length&&v.xt)v.xt.forEach(x=>addX(x));
@@ -200,8 +200,8 @@ function submitForm(f){if(busy)return;const fd=new FormData(f),d=Object.fromEntr
   const a=parseMoney(d.amount);let bad=false;$('#ea').textContent='';$('#ef').textContent='';
   if(!(a>0)){$('#ea').textContent='Ingresá un importe mayor que cero.';bad=true}
   if(!/^\d{4}-\d{2}-\d{2}$/.test(d.date||'')){$('#ef').textContent='Elegí una fecha válida.';bad=true}
-  const nm=[d.desc.trim()].concat(fd.getAll('xdesc').map(x=>x.trim())).filter(Boolean).join(', '),cl=o?'':d.client.trim();$('#e1').textContent='';if(o){if(!nm){$('#e1').textContent='Escribí el producto.';bad=true}}else{$('#e3').textContent='';if(!cl){$('#e1').textContent='Escribí el cliente.';bad=true}if(!nm){$('#e3').textContent='Escribí el producto.';bad=true}}
-  if(!o){$('#e2').textContent='';if(!d.place.trim()){$('#e2').textContent='Escribí el lugar de entrega.';bad=true}}
+  const nm=[d.desc.trim()].concat(fd.getAll('xdesc').map(x=>x.trim())).filter(Boolean).join(', '),cl=o?'':d.client.trim();$('#e1').textContent='';if(o){if(!nm){$('#e1').textContent='Escribí el producto.';bad=true}}else{$('#e3').textContent='';if(!nm){$('#e3').textContent='Escribí el producto.';bad=true}}
+  if(!o)$('#e2').textContent='';
   if(bad)return;
   const mg={};if(!o)fd.getAll('itemId').forEach((x,k)=>{if(x&&S.inv.find(y=>y.id===x))mg[x]=(mg[x]||0)+(Math.floor(Number(fd.getAll('qty')[k]))||1)});
   const old=id?S.movs.find(x=>x.id===id):null,oq=old?(old.items||(old.itemId?[{id:old.itemId,qty:old.qty}]:[])):[];
