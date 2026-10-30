@@ -29,7 +29,7 @@ function dlabel(m){const y=iso(new Date(Date.now()-864e5));if(m.date===today())r
 function inPer(d,p){const t=new Date(),ts=today();if(p==='day')return d===ts;if(p==='month')return d.slice(0,7)===ts.slice(0,7);if(p==='year')return d.slice(0,4)===ts.slice(0,4);
   const k=(t.getDay()+6)%7,a=new Date(t);a.setDate(t.getDate()-k);const b=new Date(a);b.setDate(a.getDate()+6);return d>=iso(a)&&d<=iso(b)}
 /* Stock: suma (+1) o descuenta (-1) la cantidad vendida de un movimiento */
-const stk=(m,s)=>{(m.items||(m.itemId?[{id:m.itemId,qty:m.qty}]:[])).forEach(x=>{const i=S.inv.find(y=>y.id===x.id);if(i)i.stock+=s*(x.qty||0)})};
+const stk=(m,s)=>{(m.items||(m.itemId?[{id:m.itemId,qty:m.qty}]:[])).forEach(x=>{const i=S.inv.find(y=>y.id===x.id);if(i)i.stock+=(m.type==='out'?-s:s)*(x.qty||0)})};
 const sum=(l,t)=>l.filter(m=>m.type===t).reduce((a,m)=>a+m.amount,0);
 const sorted=l=>[...l].sort((a,b)=>b.date.localeCompare(a.date)||b.created-a.created);
 const avail=()=>S.settings.initial+sum(S.movs,'in')-sum(S.movs,'out');
@@ -111,7 +111,7 @@ function vStats(){const l=S.movs.filter(m=>U.sd?m.date===U.sd:inPer(m.date,U.sp)
   <div class="card sum" style="margin:12px 0"><span>Resultado neto</span><b style="color:${i-o<0?'var(--r)':'var(--g2)'}">${fmt(i-o)}</b></div>${body}`}
 
 function vSet(){const sw=(k,t,d)=>`<div class="card" style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div style="flex:1"><b>${t}</b><p style="color:var(--m);font-size:14px">${d}</p></div><button class="sw${S.settings[k]?' on':''}" role="switch" aria-checked="${!!S.settings[k]}" aria-label="${t}" data-a="tog" data-v="${k}"><i></i></button></div>`;
-  return `<header class="hd"><div><h1>Ajustes</h1></div></header>${sw('dark','Modo oscuro','Fondo negro para usar de noche.')}${sw('inv','Habilitar inventario','Agrega la sección Inventario y permite elegir productos al vender.')}${sw('goalOn','Habilitar meta mensual','Muestra en Inicio tu progreso de ventas del mes.')}${setForms()}${backupCard()}`}
+  return `<header class="hd"><div><h1>Ajustes</h1></div></header>${sw('dark','Modo oscuro','Fondo negro para usar de noche.')}${sw('inv','Habilitar inventario','Agrega la sección Inventario y permite elegir productos al vender (descuenta stock) y al registrar gastos (suma stock).')}${sw('goalOn','Habilitar meta mensual','Muestra en Inicio tu progreso de ventas del mes.')}${setForms()}${backupCard()}`}
 /* Copia de seguridad: copiar los datos y pegarlos en otro dominio o teléfono */
 function backupCard(){return `<h2 class="sec">Copia de seguridad</h2><div class="card"><p style="color:var(--m);font-size:14px">Tus datos se guardan solo en este navegador. Hacé una copia de vez en cuando para no perderlos y para pasarlos a otro teléfono o dirección.</p><label style="margin-top:16px">Con un archivo (recomendado)</label><p style="color:var(--m);font-size:13px;margin:0 0 8px">Exportar descarga un archivo con todos tus datos. Importar carga un archivo de copia que ya tengas.</p><div class="acts" style="margin-top:0"><button class="btn ghost" data-a="export">Exportar archivo</button><button class="btn ghost" data-a="file">Importar archivo</button></div><label for="ex" style="margin-top:20px">Con texto</label><p style="color:var(--m);font-size:13px;margin:0 0 8px">Copiar texto guarda todo como un texto largo que podés pegar en una nota. Para recuperarlo, pegalo en esta caja y tocá Importar texto.</p><textarea id="ex" class="box" spellcheck="false">${esc(JSON.stringify(S))}</textarea><div class="acts"><button class="btn ghost" data-a="copy">Copiar texto</button><button class="btn ghost" data-a="import">Importar texto</button></div><p style="color:var(--r);font-size:13px;margin-top:14px">Importar reemplaza todo lo que tengas cargado en la app.</p>${hasPrev()?'<button class="btn ghost" style="width:100%;margin-top:10px" data-a="restoreprev">Recuperar datos de antes de la última importación</button>':''}<input type="file" id="bf" accept=".json,application/json,text/plain" hidden></div>`}
 /* Saldo inicial y meta mensual (importes con comas automáticas) */
@@ -170,7 +170,8 @@ function openForm(type,id){const m=id?S.movs.find(x=>x.id===id):null,o=type==='o
   L.innerHTML=`<div class="fx"><form id="mf" autocomplete="off" novalidate data-type="${type}" data-id="${m?m.id:''}"><div class="fxh${o?' out':''}"><div class="fxt"><button class="ib" type="button" data-a="back" aria-label="Volver">${ic('back')}</button><b>${m?(o?'Editar gasto':'Editar venta'):(o?'Nuevo gasto':'Nueva venta')}</b></div><label for="fa">Importe</label><div class="pf2"><span>$</span><input id="fa" name="amount" inputmode="numeric" placeholder="0" autocomplete="off" value="${m?num(m.amount):''}"></div><small class="err" id="ea"></small></div><div class="fxb">
   <label for="ff">Fecha</label><input id="ff" name="date" type="date" value="${v.date||today()}"><small class="err" id="ef"></small>
   
-  ${o?`<label for="fd">Producto</label><input id="fd" name="desc" autocomplete="off" maxlength="80" value="${esc(v.desc||'')}"><small class="err" id="e1"></small>
+  ${o?`<label for="fd">Productos</label>${S.settings.inv?'<div id="il"></div>':''}<input id="fd" name="desc" autocomplete="off" maxlength="80" placeholder="${S.settings.inv?'Se completa al elegir del inventario':'Nombre del producto'}" value="${esc(v.desc||'')}"><small class="err" id="e3"></small><div id="xp"></div><small class="err" id="e4"></small>
+  <div class="cr">${S.settings.inv?'<button type="button" class="chip" id="al" data-a="addline">+ Del inventario</button>':''}<button type="button" class="chip" id="ap" data-a="addp">+ Otro producto</button></div>
   <label for="fp">Proveedor</label><input id="fp" name="party" autocomplete="off" maxlength="60" value="${esc(v.party||'')}">
   <label for="fn">Nota</label><textarea id="fn" name="notes" rows="2" maxlength="200">${esc(v.notes||'')}</textarea>`
   :`<label for="fc">Cliente</label><input id="fc" name="client" autocomplete="off" maxlength="60" value="${esc(v.client||'')}"><small class="err" id="e1"></small>
@@ -180,8 +181,8 @@ function openForm(type,id){const m=id?S.movs.find(x=>x.id===id):null,o=type==='o
   <small class="err" id="e2"></small>
   <label for="fn">Nota</label><textarea id="fn" name="notes" rows="2" maxlength="200">${esc(v.notes||'')}</textarea>`}
   <div class="acts"><button type="button" class="btn ghost" data-a="back">Cancelar</button><button class="btn${o?' red':''}">${m?'Guardar cambios':(o?'Guardar gasto':'Guardar venta')}</button></div></div></form></div>`;
-  if(S.settings.inv&&!o)(v.items||(v.itemId?[{id:v.itemId,qty:v.qty}]:[])).forEach(x=>addLine(x.id,x.qty));
-  if(S.settings.inv&&!o&&v.items&&v.items.length&&v.xt)v.xt.forEach(x=>addX(x));
+  if(S.settings.inv)(v.items||(v.itemId?[{id:v.itemId,qty:v.qty}]:[])).forEach(x=>addLine(x.id,x.qty));
+  if(S.settings.inv&&v.items&&v.items.length&&v.xt)v.xt.forEach(x=>addX(x));
   try{history.pushState({f:1},'')}catch(e){}}
 /* Venta con varios productos del inventario: cada línea tiene producto + cantidad; el importe y el nombre se completan solos */
 function addLine(id,q){const d=document.createElement('div');d.className='il';
@@ -190,7 +191,7 @@ function addLine(id,q){const d=document.createElement('div');d.className='il';
 function addX(t){const d=document.createElement('div');d.className='il';d.innerHTML='<input name="xdesc" autocomplete="off" maxlength="80" placeholder="Otro producto" aria-label="Otro producto" style="flex:1 1 0;min-width:0" value="'+esc(t||'')+'"><button type="button" class="dots" data-a="lrm" aria-label="Quitar producto">'+ic('trash')+'</button>';$('#xp').appendChild(d);if(t===undefined)d.querySelector('input').focus()}
 function lblAdd(){const b=$('#al');if(b)b.textContent=document.querySelector('#il .il')?'+ Otro del inventario':'+ Del inventario'}
 function sumLines(){let t=0;const n=[];document.querySelectorAll('#il .il').forEach(r=>{const p=S.inv.find(x=>x.id===r.querySelector('select').value);if(!p)return;const q=Math.max(1,Math.floor(Number(r.querySelector('.step input').value))||1);t+=p.price*q;n.push(p.name+(q>1?' x'+q:''))});
-  if(!n.length)return;$('#fa').value=num(t);$('#fd').value=n.join(', ')}
+  if(!n.length)return;if($('#mf').dataset.type!=='out')$('#fa').value=num(t);$('#fd').value=n.join(', ')}
 let skipPop=false,dirty=false;
 /* Si hay cambios sin guardar, pregunta antes de cerrar un formulario */
 function tryClose(fromPop){if(!$('#layer').hidden&&dirty){if(fromPop){try{history.pushState({f:1},'')}catch(e){}}sheet(`<h3>¿Descartar lo que escribiste?</h3><p>Si salís ahora, se pierden los cambios sin guardar.</p><div class="acts"><button class="btn ghost" data-a="close">Seguir editando</button><button class="btn dng" data-a="discard">Descartar</button></div>`,1);return}closeForm(fromPop?1:0)}
@@ -200,15 +201,16 @@ function submitForm(f){if(busy)return;const fd=new FormData(f),d=Object.fromEntr
   const a=parseMoney(d.amount);let bad=false;$('#ea').textContent='';$('#ef').textContent='';
   if(!(a>0)){$('#ea').textContent='Ingresá un importe mayor que cero.';bad=true}
   if(!/^\d{4}-\d{2}-\d{2}$/.test(d.date||'')){$('#ef').textContent='Elegí una fecha válida.';bad=true}
-  const nm=[d.desc.trim()].concat(fd.getAll('xdesc').map(x=>x.trim())).filter(Boolean).join(', '),cl=o?'':d.client.trim();$('#e1').textContent='';if(o){if(!nm){$('#e1').textContent='Escribí el producto.';bad=true}}else{$('#e3').textContent='';if(!nm){$('#e3').textContent='Escribí el producto.';bad=true}}
+  const nm=[d.desc.trim()].concat(fd.getAll('xdesc').map(x=>x.trim())).filter(Boolean).join(', '),cl=o?'':d.client.trim();if(!o)$('#e1').textContent='';$('#e3').textContent='';if(!nm){$('#e3').textContent='Escribí el producto.';bad=true}
   if(!o)$('#e2').textContent='';
   if(bad)return;
-  const mg={};if(!o)fd.getAll('itemId').forEach((x,k)=>{if(x&&S.inv.find(y=>y.id===x))mg[x]=(mg[x]||0)+(Math.floor(Number(fd.getAll('qty')[k]))||1)});
+  const mg={};fd.getAll('itemId').forEach((x,k)=>{if(x&&S.inv.find(y=>y.id===x))mg[x]=(mg[x]||0)+(Math.floor(Number(fd.getAll('qty')[k]))||1)});
   const old=id?S.movs.find(x=>x.id===id):null,oq=old?(old.items||(old.itemId?[{id:old.itemId,qty:old.qty}]:[])):[];
   const its=Object.keys(mg).map(k=>{const p=S.inv.find(y=>y.id===k);return{id:k,name:p.name,price:p.price,qty:mg[k]}});
-  for(const x of its){const p=S.inv.find(y=>y.id===x.id),have=p.stock+oq.filter(z=>z.id===x.id).reduce((a,z)=>a+(z.qty||0),0);if(x.qty>have){$('#e4').textContent='Stock insuficiente de '+p.name+' (hay '+have+').';return}}
+  if(o)for(const p of S.inv){const oldq=oq.filter(z=>z.id===p.id).reduce((a,z)=>a+(z.qty||0),0),newq=(its.find(z=>z.id===p.id)||{}).qty||0;if(p.stock-oldq+newq<0){$('#e4').textContent='No se puede editar: el stock de '+p.name+' quedaría negativo.';return}}
+  if(!o)for(const x of its){const p=S.inv.find(y=>y.id===x.id),have=p.stock+oq.filter(z=>z.id===x.id).reduce((a,z)=>a+(z.qty||0),0);if(x.qty>have){$('#e4').textContent='Stock insuficiente de '+p.name+' (hay '+have+').';return}}
   busy=true;const t=nm;
-  const rec=o?{amount:a,desc:t,date:d.date,party:d.party.trim(),notes:d.notes.trim()}:{amount:a,desc:t,client:cl,date:d.date,place:d.place.trim(),notes:d.notes.trim(),items:its,xt:its.length?fd.getAll('xdesc').map(x=>x.trim()).filter(Boolean):[]};
+  const rec=o?{amount:a,desc:t,date:d.date,party:d.party.trim(),notes:d.notes.trim(),items:its,xt:its.length?fd.getAll('xdesc').map(x=>x.trim()).filter(Boolean):[]}:{amount:a,desc:t,client:cl,date:d.date,place:d.place.trim(),notes:d.notes.trim(),items:its,xt:its.length?fd.getAll('xdesc').map(x=>x.trim()).filter(Boolean):[]};
   const before=JSON.stringify(S);
   if(id){const m=S.movs.find(x=>x.id===id);if(!m){busy=false;return toast('No se encontró el movimiento',1)}stk(m,1);Object.assign(m,rec);stk(m,-1)}
   else{const n=new Date();S.movs.push(Object.assign({id:uid(),type:f.dataset.type,time:pad(n.getHours())+':'+pad(n.getMinutes()),created:Date.now()},rec));stk(S.movs[S.movs.length-1],-1)}
